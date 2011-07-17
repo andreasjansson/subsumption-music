@@ -1,12 +1,4 @@
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "synth.h"
-
-#define MIN_FREQ 20
-#define MAX_FREQ 20000
+#include "source.h"
 
 Synth *synth_create(unsigned int sample_rate, unsigned int burst, float decay, float pan,
                     float gain, float detune)

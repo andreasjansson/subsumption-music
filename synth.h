@@ -17,6 +17,12 @@
  * 
  */
 
+#ifndef SYNTH_H
+#define SYNTH_H
+
+#define MIN_FREQ 20
+#define MAX_FREQ 20000
+
 typedef struct {
   unsigned int sample_rate;
 
@@ -68,3 +74,4 @@ void synth_fill_buffers(Synth *synth, float *buffer_l, float *buffer_r,
 
 void synth_clear(Synth *synth);
 
+#endif

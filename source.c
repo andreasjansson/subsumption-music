@@ -17,17 +17,9 @@
  * 
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "source.h"
 
-#include "synth.h"
-
-#define SAMP_RATE				44100.0
-#define CHANNELS				1
-#define BIT_RATE				16.0
-
-#define NOTE_LENGTH     22100
+config_t cfg;
 
 int main(int argc, char **argv)
 {
@@ -39,6 +31,17 @@ int main(int argc, char **argv)
   float *buffer_r = calloc(NOTE_LENGTH, sizeof(float));
 
   int n = 0;
+
+  config_init(&cfg);
+  if(!config_read_file(&cfg, CONFIG_FILE))
+  {
+    fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+            config_error_line(&cfg), config_error_text(&cfg));
+    config_destroy(&cfg);
+    return(EXIT_FAILURE);
+  }
+
+  system_init();
 
   while(1) {
 
@@ -57,5 +60,14 @@ int main(int argc, char **argv)
     }
   }
 
-	return 0;
+  free(buffer_l);
+  free(buffer_r);
+
+  return(EXIT_SUCCESS);
+}
+
+void config_die(const char *variable)
+{
+  fprintf(stderr, "Unknown configuration variable: %s\n", variable);
+  exit(EXIT_FAILURE);
 }
