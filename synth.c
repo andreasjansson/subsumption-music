@@ -79,6 +79,7 @@ static void synth_write_sample(float x, float a, float decay,
                history_length)) = *(buffer + i);
 
   *(buffer + i) *= gain;
+  //*(buffer + i) *= 0;
 
   *previous_v = v;
   *previous_w = w;
