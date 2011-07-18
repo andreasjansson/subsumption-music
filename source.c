@@ -68,6 +68,6 @@ int main(int argc, char **argv)
 
 void config_die(const char *variable)
 {
-  fprintf(stderr, "Unknown configuration variable: %s\n", variable);
+  fprintf(stderr, "Could not find configuration variable: %s\n", variable);
   exit(EXIT_FAILURE);
 }
