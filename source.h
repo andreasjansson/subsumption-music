@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libconfig.h>
+#include <string.h>
 
 #define SAMP_RATE				44100.0
 #define CHANNELS				1

@@ -24,13 +24,7 @@ config_t cfg;
 int main(int argc, char **argv)
 {
 	unsigned short yn;
-  int i;
-
-  Synth *synth = synth_create(SAMP_RATE, 100, .9999, .5, 50, 2);
-  float *buffer_l = calloc(NOTE_LENGTH, sizeof(float));
-  float *buffer_r = calloc(NOTE_LENGTH, sizeof(float));
-
-  int n = 0;
+  int i, j;
 
   config_init(&cfg);
   if(!config_read_file(&cfg, CONFIG_FILE))
@@ -42,18 +36,41 @@ int main(int argc, char **argv)
   }
 
   system_init();
+  int agent_count = system_get_agent_count();
+  int notes[agent_count];
 
+  float *buffer_l = calloc(NOTE_LENGTH, sizeof(float));
+  float *buffer_r = calloc(NOTE_LENGTH, sizeof(float));
+  float *synth_buffer_l = calloc(NOTE_LENGTH, sizeof(float));
+  float *synth_buffer_r = calloc(NOTE_LENGTH, sizeof(float));
+
+  Synth **synths = calloc(agent_count, sizeof(Synth *));
+  for(i = 0; i < agent_count; i ++)
+    synths[i] = synth_create(SAMP_RATE, 100, .9999, .5, 50, 2);
+
+  Synth *synth;
+  float freq;
   while(1) {
+    for(i = 0; i < NOTE_LENGTH; i ++)
+      buffer_l[i] = buffer_r[i] = 0;
 
-    synth_set_note(synth, 110 * pow(2, (float)n / 12));
+    system_get_notes(notes);
+    for(i = 0; i < agent_count; i ++) {
+      synth = synths[i];
+      freq = 16.35 * pow(2, (float)notes[i] / 12);
+      synth_set_note(synth, freq);
+      synth_fill_buffers(synth, synth_buffer_l, synth_buffer_r, NOTE_LENGTH);
 
-    n = (n + 1) % 12;
-
-    synth_fill_buffers(synth, buffer_l, buffer_r, NOTE_LENGTH);
+      // add to buffers. maybe multithread this?
+      for(j = 0; j < NOTE_LENGTH; j ++) {
+        buffer_l[j] += synth_buffer_l[j];
+        buffer_r[j] += synth_buffer_r[j];
+      }
+    }
 
     for(i = 0; i < NOTE_LENGTH; i ++) {
 
-      yn = (unsigned short)(buffer_l[i] * (1 << 15));
+      yn = (unsigned short)((buffer_l[i] / agent_count) * (1 << 15));
 
       putchar((unsigned char)yn);
       putchar(yn >> 8);

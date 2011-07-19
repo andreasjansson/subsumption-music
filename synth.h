@@ -55,7 +55,7 @@ typedef struct {
   unsigned int history_position_r;
   unsigned int history_length;
 
-  // previous samples for allpass and lowpass filteres
+  // previous samples for allpass and lowpass filters
   float previous_v_l;
   float previous_w_l;
   float previous_v_r;
