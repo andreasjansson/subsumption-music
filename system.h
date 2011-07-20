@@ -10,7 +10,8 @@ typedef struct {
   Scale scale;
   int time;
   int pitch;
-  int radius;
+  int width;
+  int height;
 } Gem;
 
 void system_init(void);

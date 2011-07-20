@@ -23,7 +23,7 @@ config_t cfg;
 
 int main(int argc, char **argv)
 {
-	unsigned short yn;
+	unsigned short left, right;
   int i, j;
 
   config_init(&cfg);
@@ -70,10 +70,13 @@ int main(int argc, char **argv)
 
     for(i = 0; i < NOTE_LENGTH; i ++) {
 
-      yn = (unsigned short)((buffer_l[i] / agent_count) * (1 << 15));
+      left = (unsigned short)((buffer_l[i] / agent_count) * (1 << 15));
+      right = (unsigned short)((buffer_r[i] / agent_count) * (1 << 15));
 
-      putchar((unsigned char)yn);
-      putchar(yn >> 8);
+      putchar((unsigned char)left);
+      putchar(left >> 8);
+      putchar((unsigned char)right);
+      putchar(right >> 8);
     }
   }
 

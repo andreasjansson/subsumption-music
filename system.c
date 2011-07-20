@@ -8,16 +8,19 @@ Agent *agents;
 int agent_count;
 int loop_time;
 Scale *initial_scale;
-int pitch_range_low;
-int pitch_range_high;
+int min_pitch;
+int max_pitch;
 int max_jump;
-double radius_factor;
+double radius_time_factor;
+double radius_pitch_factor;
 Gem *gems;
+int time;
 
 void system_init(void)
 {
   system_init_config();
   system_init_agents();
+  time = 0;
 }
 
 static void system_init_config(void)
@@ -28,17 +31,20 @@ static void system_init_config(void)
   if(!config_lookup_int(&cfg, "loop_time", &loop_time))
     config_die("loop_time");
   
-  if(!config_lookup_int(&cfg, "pitch_range_low", &pitch_range_low))
-    config_die("pitch_range_low");
+  if(!config_lookup_int(&cfg, "min_pitch", &min_pitch))
+    config_die("min_pitch");
   
-  if(!config_lookup_int(&cfg, "pitch_range_high", &pitch_range_high))
-    config_die("pitch_range_high");
+  if(!config_lookup_int(&cfg, "max_pitch", &max_pitch))
+    config_die("max_pitch");
   
   if(!config_lookup_int(&cfg, "max_jump", &max_jump))
     config_die("max_jump");
   
-  if(!config_lookup_float(&cfg, "radius_factor", &radius_factor))
-    config_die("radius_factor");
+  if(!config_lookup_float(&cfg, "radius_pitch_factor", &radius_pitch_factor))
+    config_die("radius_pitch_factor");
+  
+  if(!config_lookup_float(&cfg, "radius_time_factor", &radius_pitch_factor))
+    config_die("radius_time_factor");
   
   config_setting_t *gem_settings;
   if(!(gem_settings = config_lookup(&cfg, "gems")))
@@ -67,9 +73,12 @@ static void system_init_config(void)
 
     if(!config_setting_lookup_int(gem_setting, "pitch", &gems[i].pitch))
       config_die("gem.pitch");
-    
-    if(!config_setting_lookup_int(gem_setting, "radius", &gems[i].radius))
+
+    int radius;
+    if(!config_setting_lookup_int(gem_setting, "radius", &radius))
       config_die("gem.radius");
+    gems[i].width = radius * radius_time_factor;
+    gems[i].height = radius * radius_pitch_factor;
   }
 
   initial_scale = &gems[0].scale;
@@ -80,9 +89,9 @@ static void system_init_agents(void)
   agents = calloc(agent_count, sizeof(Agent));
   int i;
   for(i = 0; i < agent_count; i ++) {
-    float initial_pitch = ((float)(pitch_range_high - pitch_range_low) /
-                           (agent_count + 2)) * (i + 1) + pitch_range_low;
-    agent_create(agents + i, initial_pitch, initial_scale, agent_count);
+    float initial_pitch = ((float)(max_pitch - min_pitch) /
+                           (agent_count + 2)) * (i + 1) + min_pitch;
+    agent_create(agents + i, initial_pitch, initial_scale, agent_count, i);
   }
 }
 
@@ -104,8 +113,10 @@ void system_get_notes(int *notes)
   int i;
   for(i = 0; i < agent_count; i ++) {
     notes[i] = agent_get_scaled_note(agents + i);
-    agent_update(agents + i);
+    agent_update(agents + i, gems, time, min_pitch, max_pitch, max_jump);
   }
+
+  time = (time + 1) % loop_time;
 }
 
 static void system_find_agent_collisions(void)
