@@ -10,7 +10,6 @@
 #define SAMP_RATE				44100.0
 #define CHANNELS				1
 #define BIT_RATE				16.0
-#define NOTE_LENGTH     10000
 #define CONFIG_FILE     "source.cfg"
 
 // not a very safe way of getting the signum, but i promise i'll
@@ -24,5 +23,6 @@
 void config_die(const char *variable);
 
 extern config_t cfg;
+extern double subdiv;
 
 #endif

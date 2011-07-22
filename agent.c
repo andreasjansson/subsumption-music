@@ -1,6 +1,7 @@
 #include "source.h"
 
-static Scale *agent_get_new_scale(Agent *agent, Gem *gems, int time);
+static Scale *agent_get_new_scale(Agent *agent, Gem *gems, int gem_count,
+                                  int time);
 static float agent_get_new_bias(Agent *agent, int min_pitch, int max_pitch);
 static float agent_get_new_pitch(Agent *agent, int max_jump);
 
@@ -21,10 +22,11 @@ void agent_destroy(Agent *agent)
   free(agent);
 }
 
-void agent_update(Agent *agent, Gem *gems, int time, int min_pitch,
+void agent_update(Agent *agent, Gem *gems, int gem_count,
+                  int time, int min_pitch,
                   int max_pitch, int max_jump)
 {
-  Scale *scale = agent_get_new_scale(agent, gems, time);
+  Scale *scale = agent_get_new_scale(agent, gems, gem_count, time);
   if(scale == NULL)
     agent->power /= 2;
   else {
@@ -50,12 +52,13 @@ int agent_get_scaled_note(Agent *agent)
   return scaled_note + octave * 12;
 }
 
-static Scale *agent_get_new_scale(Agent *agent, Gem *gems, int time)
+static Scale *agent_get_new_scale(Agent *agent, Gem *gems, int gem_count,
+                                  int time)
 {
   // check if we're on a gem
   Gem *gem;
   int i;
-  for(i = 0; i < sizeof(gems) / sizeof(Gem *); i ++) {
+  for(i = 0; i < gem_count; i ++) {
     gem = gems + i;
     if(abs(gem->time - time) < gem->width &&
        abs(gem->pitch - agent->pitch) < gem->height)
@@ -99,7 +102,7 @@ static float agent_get_new_bias(Agent *agent, int min_pitch, int max_pitch)
   float bias = 0;
   int i;
   for(i = 0; i < agent->collision_count; i ++) {
-    bias += sign(i - agent->collisions[i]->index);
+    bias += sign(agent->index - agent->collisions[i]->index);
   }
 
   return sign(bias);

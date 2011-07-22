@@ -1,7 +1,7 @@
 #include "source.h"
 
-Synth *synth_create(unsigned int sample_rate, unsigned int burst, float decay, float pan,
-                    float gain, float detune)
+Synth *synth_create(unsigned int sample_rate, unsigned int burst,
+                    float decay, float pan, float gain, float detune)
 {
   // TODO: error handling
   Synth *synth = malloc(sizeof(Synth));
@@ -47,7 +47,7 @@ static void synth_get_delays(float freq, unsigned int *loop_delay,
     (sin(1 + phase_delay) * freq_rad / 2);
 }
 
-static void synth_write_sample(float x, float a, float decay,
+static inline void synth_write_sample(float x, float a, float decay,
                                       unsigned int loop_delay, float gain,
                                       float *history,
                                       unsigned int *history_position,
@@ -56,13 +56,11 @@ static void synth_write_sample(float x, float a, float decay,
                                       float *previous_w,
                                       float *buffer, unsigned long i)
 {
-  float w, v;
+  float w, v, p;
 
-  w = x * (1 - pow(decay, loop_delay)) +
-    pow(decay, loop_delay) * *(history + *history_position);
-
+  p = pow(decay, loop_delay);
+  w = x * (1 - p) + p * *(history + *history_position);
   v = a * w + *previous_w - a * *previous_v;
-
   *(buffer + i) = (v + *previous_v) / 2;
 
   // add the current output sample <delay> steps ahead in the history
@@ -99,13 +97,15 @@ void synth_fill_buffers(Synth *synth, float *buffer_l, float *buffer_r,
     else
       x = 0;
 
-    synth_write_sample(x, a_l, synth->decay, loop_delay_l, synth->gain,
+    synth_write_sample(x, a_l, synth->decay, loop_delay_l,
+                       synth->gain * 2 * synth->pan,
                        synth->history_l, &synth->history_position_l,
                        synth->history_length,
                        &synth->previous_v_l, &synth->previous_w_l,
                        buffer_l, i);
 
-    synth_write_sample(x, a_r, synth->decay, loop_delay_r, synth->gain,
+    synth_write_sample(x, a_r, synth->decay, loop_delay_r, 
+                       synth->gain * 2 * (1 - synth->pan),
                        synth->history_r, &synth->history_position_r,
                        synth->history_length,
                        &synth->previous_v_r, &synth->previous_w_r,

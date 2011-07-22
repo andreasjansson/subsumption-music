@@ -14,7 +14,8 @@ int max_jump;
 double radius_time_factor;
 double radius_pitch_factor;
 Gem *gems;
-int time;
+int gem_count;
+float time;
 
 void system_init(void)
 {
@@ -43,14 +44,14 @@ static void system_init_config(void)
   if(!config_lookup_float(&cfg, "radius_pitch_factor", &radius_pitch_factor))
     config_die("radius_pitch_factor");
   
-  if(!config_lookup_float(&cfg, "radius_time_factor", &radius_pitch_factor))
+  if(!config_lookup_float(&cfg, "radius_time_factor", &radius_time_factor))
     config_die("radius_time_factor");
   
   config_setting_t *gem_settings;
   if(!(gem_settings = config_lookup(&cfg, "gems")))
     config_die("gems");
 
-  int gem_count = config_setting_length(gem_settings);
+  gem_count = config_setting_length(gem_settings);
   gems = calloc(gem_count, sizeof(Gem));
   config_setting_t *scale_settings, *gem_setting;
   int scale_count;
@@ -113,10 +114,13 @@ void system_get_notes(int *notes)
   int i;
   for(i = 0; i < agent_count; i ++) {
     notes[i] = agent_get_scaled_note(agents + i);
-    agent_update(agents + i, gems, time, min_pitch, max_pitch, max_jump);
+    agent_update(agents + i, gems, gem_count,
+                 time, min_pitch, max_pitch, max_jump);
   }
 
-  time = (time + 1) % loop_time;
+  time = time + subdiv;
+  if(time >= loop_time)
+    time = 0;
 }
 
 static void system_find_agent_collisions(void)
@@ -128,7 +132,8 @@ static void system_find_agent_collisions(void)
 
   for(i = 0; i < agent_count - 1; i ++) {
     for(j = i + 1; j < agent_count; j ++) {
-      if(agents[i].pitch == agents[j].pitch) {
+      if(agent_get_scaled_note(&agents[i]) ==
+         agent_get_scaled_note(&agents[j])) {
         agents[i].collisions[agents[i].collision_count ++] =
           &agents[j];
         agents[j].collisions[agents[j].collision_count ++] =
