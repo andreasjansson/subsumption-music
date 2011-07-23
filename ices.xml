@@ -52,8 +52,8 @@
                 the source password and mountpoint.  -->
             <hostname>localhost</hostname>
             <port>8000</port>
-						<password>sSoOuUrRcC3£</password>
-            <mount>/example1.ogg</mount>
+						<password></password>
+            <mount>/subsumption.ogg</mount>
 
             <!-- Reconnect parameters:
                 When something goes wrong (e.g. the server crashes, or the

@@ -1,5 +1,14 @@
-Icecase synth experiment
+ _____________________
+/\                    \
+\_| subsumption-music |
+  |   ________________|_
+   \_/__________________/
 
-Nothing to see yet, but will eventually become
-an algorithmic music generation app that serves
-up music through icecast.
+
+This project implements an algorithm for creating polyphonic music, described here: http://subsumption.jansson.me.uk and here: http://rootnote.blogspot.com/2011/03/using-subsumption-architecture-for.html.
+
+There are two parts to this project, a music generation module and a synthesiser module. The music module consists of the system.[ch] and agent.[ch] files, and the synth module is can be found in synth.[ch].
+
+The whole thing is tied together in source.c. In the main loop notes are being read from the music module and these notes are then fed to the synth module which fills up audio buffers. These buffers are then outputted to stdout in 16-bit little endian format, a format that can be read by the Ices2 stdinpcm input module. (I named the file source.c to be compliant with Ices2 terminology.)
+
+NOTE: In order to compile you need to have libconfig installed. I used libconfig-1.4.7, obtained from http://www.hyperrealm.com/libconfig/. (The libconfig version that is in the Ubuntu 10.10 repositories does not work.)
