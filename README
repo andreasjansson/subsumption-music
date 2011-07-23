@@ -11,7 +11,7 @@ http://rootnote.blogspot.com/2011/03/using-subsumption-architecture-for.html.
 
 There are two parts to this project, a music generation module and a
 synthesiser module. The music module consists of the system.[ch] and
-agent.[ch] files, and the synth module is can be found in synth.[ch].
+agent.[ch] files, and the synth module can be found in synth.[ch].
 
 The whole thing is tied together in source.c. In the main loop notes
 are being read from the music module and these notes are then fed to
