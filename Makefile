@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -O4
 LIBS=-lm -lconfig
 SOURCES=source.c synth.c agent.c system.c
 OBJECTS=$(SOURCES:.c=.o)

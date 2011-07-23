@@ -58,7 +58,7 @@ int main(int argc, char **argv)
   Synth **synths = calloc(agent_count, sizeof(Synth *));
   for(i = 0; i < agent_count; i ++) {
     float pan = ((float)i / 20) * ((i % 2) * 2 - 1) + .5;
-    synths[i] = synth_create(SAMP_RATE, 40 + i * 5, .9999, pan, 50 + 50 * i, 2);
+    synths[i] = synth_create(SAMP_RATE, 40 + i * 5, .9999, pan, 60 + 80 * i, 2);
   }
 
   Synth *synth;
