@@ -1,5 +1,5 @@
 /* 
- * Icecast synth experiment
+ * subsumption-music
  * Copyright (C) 2011  Andreas Jansson <andreas@jansson.me.uk>
  * 
  * This program is free software: you can redistribute it and/or modify

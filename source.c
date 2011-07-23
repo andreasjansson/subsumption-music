@@ -1,5 +1,5 @@
 /* 
- * Icecast synth experiment
+ * subsumption-music
  * Copyright (C) 2011  Andreas Jansson <andreas@jansson.me.uk>
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -19,15 +19,23 @@
 
 #include "source.h"
 
-extern Agent *agents;
 double subdiv;
 config_t cfg;
 int note_length;
+int agent_count;
+Synth **synths;
 
-int main(int argc, char **argv)
+static void init(void)
 {
-	unsigned short left, right;
-  int i, j;
+  int i;
+  double bpm;
+  double decay;
+  int samp_rate;
+  int min_burst;
+  int burst_increase;
+  int min_gain;
+  int gain_increase;
+  int detune;
 
   config_init(&cfg);
   if(!config_read_file(&cfg, CONFIG_FILE))
@@ -35,43 +43,59 @@ int main(int argc, char **argv)
     fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
             config_error_line(&cfg), config_error_text(&cfg));
     config_destroy(&cfg);
-    return(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
-  double bpm;
   if(!config_lookup_float(&cfg, "bpm", &bpm))
     config_die("bpm");
   if(!config_lookup_float(&cfg, "subdiv", &subdiv))
     config_die("subdiv");
+  if(!config_lookup_int(&cfg, "samp_rate", &samp_rate))
+    config_die("samp_rate");
+  if(!config_lookup_int(&cfg, "min_burst", &min_burst))
+    config_die("min_burst");
+  if(!config_lookup_int(&cfg, "burst_increase", &burst_increase))
+    config_die("burst_increase");
+  if(!config_lookup_float(&cfg, "decay", &decay))
+    config_die("decay");
+  if(!config_lookup_int(&cfg, "min_gain", &min_gain))
+    config_die("min_gain");
+  if(!config_lookup_int(&cfg, "gain_increase", &gain_increase))
+    config_die("gain_increase");
+  if(!config_lookup_int(&cfg, "detune", &detune))
+    config_die("detune");
 
-  note_length = (float)SAMP_RATE * 60 * subdiv / bpm;
-  
+  note_length = (float)samp_rate * 60 * subdiv / bpm;
   system_init();
-  int agent_count = system_get_agent_count();
-  int notes[agent_count];
+  agent_count = system_get_agent_count();
 
-  float *buffer_l = calloc(note_length, sizeof(float));
-  float *buffer_r = calloc(note_length, sizeof(float));
-  float *synth_buffer_l = calloc(note_length, sizeof(float));
-  float *synth_buffer_r = calloc(note_length, sizeof(float));
-
-  Synth **synths = calloc(agent_count, sizeof(Synth *));
+  synths = calloc(agent_count, sizeof(Synth *));
   for(i = 0; i < agent_count; i ++) {
     float pan = ((float)i / 20) * ((i % 2) * 2 - 1) + .5;
-    synths[i] = synth_create(SAMP_RATE, 40 + i * 5, .9999, pan, 60 + 80 * i, 2);
+    synths[i] = synth_create(samp_rate, min_burst + i * burst_increase,
+                             decay, pan, min_gain + gain_increase * i, detune);
   }
+}
 
+static void loop(void)
+{
   Synth *synth;
   float freq;
+  float buffer_l[note_length];
+  float buffer_r[note_length];
+  float synth_buffer_l[note_length];
+  float synth_buffer_r[note_length];
+  int i, j;
+  int notes[agent_count];
+  unsigned short left, right;
+  
   while(1) {
+
     for(i = 0; i < note_length; i ++)
       buffer_l[i] = buffer_r[i] = 0;
 
     system_get_notes(notes);
     for(i = 0; i < agent_count; i ++) {
-
-      //      printf(i > 0 ? ":%d" : "%d", notes[i]);
-
       synth = synths[i];
       freq = 16.35 * pow(2, (float)notes[i] / 12);
       synth_set_note(synth, freq);
@@ -83,10 +107,8 @@ int main(int argc, char **argv)
         buffer_r[j] += synth_buffer_r[j];
       }
     }
-    //    printf("\n");
 
     for(i = 0; i < note_length; i ++) {
-
       left = (unsigned short)((buffer_l[i] / agent_count) * (1 << 15));
       right = (unsigned short)((buffer_r[i] / agent_count) * (1 << 15));
 
@@ -95,12 +117,17 @@ int main(int argc, char **argv)
       putchar((unsigned char)right);
       putchar(right >> 8);
     }
+
+    system_update();
   }
+}
 
-  free(buffer_l);
-  free(buffer_r);
+int main(int argc, char **argv)
+{
+  init();
+  loop();
 
-  return(EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);
 }
 
 void config_die(const char *variable)

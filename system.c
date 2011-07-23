@@ -1,3 +1,22 @@
+/* 
+ * subsumption-music
+ * Copyright (C) 2011  Andreas Jansson <andreas@jansson.me.uk>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or (at
+ * your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 #include "source.h"
 
 static void system_init_config(void);
@@ -98,7 +117,12 @@ static void system_init_agents(void)
 
 void system_gems_destroy(void)
 {
+  int i;
+  for(i = 0; i < gem_count; i ++) {
+    free(gems[i].scale.notes);
+  }
 
+  free(gems);
 }
 
 void system_destroy(void)
@@ -109,11 +133,17 @@ void system_destroy(void)
 
 void system_get_notes(int *notes)
 {
+  int i;
+  for(i = 0; i < agent_count; i ++)
+    notes[i] = agent_get_scaled_note(agents + i);
+}
+
+void system_update(void)
+{
   system_find_agent_collisions();
 
   int i;
   for(i = 0; i < agent_count; i ++) {
-    notes[i] = agent_get_scaled_note(agents + i);
     agent_update(agents + i, gems, gem_count,
                  time, min_pitch, max_pitch, max_jump);
   }
